@@ -21,9 +21,10 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import HelpIcon from "@mui/icons-material/Help";
 import SellIcon from "@mui/icons-material/Sell";
 
+import StatusOrder from "./Status";
 import numberSuperator from "../../utils/numbersperator";
 
-export default function Microsite() {
+export default function Status() {
   const { id } = useParams();
   const [country, setCountry] = useState([]);
   const [allProv, setAllProv] = useState([]);
@@ -33,10 +34,15 @@ export default function Microsite() {
   const [subTotal, setSubTotal] = useState(0);
   const [total, setTotal] = useState(0);
 
+  const [userData, setUserData] = useState(initialValues);
+  const [statusPayment, setStatusPayment] = useState("");
+
   useEffect(() => {
     getCountry();
     getProv();
     getOrder();
+    getUserDetails();
+    getStatusOrder();
   }, []);
 
   const getCountry = async () => {
@@ -79,303 +85,55 @@ export default function Microsite() {
     }
   };
 
-  const handleSubmitData = async (value) => {
+  const getUserDetails = async () => {
     try {
-      const url = `${config.baseURL}/midtrans/create`;
-      const payload = {
-        transaction_details: {
-          order_id: "a222121",
-          gross_amount: total,
-        },
-        credit_card: {
-          secure: true,
-        },
-        item_details: order.map((val) => ({
-          id: val.CommerceOrder_item_id,
-          price: val.CommerceOrder_price,
-          quantity: val.CommerceOrder_quantity,
-          name: val.CommerceOrder_name,
-        })),
-        customer_details: {
-          first_name: value.first_name,
-          last_name: value.last_name,
-          email: value.email,
-          phone: value.phone,
-          shipping_address: {
-            first_name: value.first_name,
-            last_name: value.last_name,
-            email: value.email,
-            phone: value.phone,
-            address: value.address,
-            city: value.city,
-            postal_code: value.postal_code,
-            country_code: value.country_code.id,
-          },
-        },
-        // callbacks: {
-        //   finish: "https://",
-        // },
-      };
-
-      const respons = await axios.post(url, payload, {
-        headers: {
-          "x-midtrans-auth":
-            "Basic U0ItTWlkLXNlcnZlci1vbXdGNnRwcnRzenBPbC0zc0Utcko1bmM6",
-          Authorization: "Basic dXd1OnV3dWJvdDEyMw==",
-          "Content-Type": "application/json",
-        },
+      const url = `${config.baseURL}/pengiriman/${id}`;
+      const respons = await axios.get(url, {
+        auth: config.basic,
       });
-      await handlePengiriman(value);
-      window.location.href = respons.data.redirect_url;
+      const { data } = respons;
+
+      setUserData({
+        email: data[0].customer_email,
+        phone: data[0].phone,
+        first_name: data[0].customer_name.split(" ")[0],
+        last_name: data[0].customer_name.split(" ")[1],
+        city: data[0].city,
+        postal_code: data[0].postal_code,
+        country_code: data[0].country,
+        address: data[0].address,
+      });
     } catch (error) {
-      console.log(error);
+      console.log(err);
     }
   };
 
-  const handlePengiriman = async (value) => {
-    const url = `${config.baseURL}/pengiriman`;
-    const payload = {
-      order_id: id,
-      customer_email: value.email,
-      country: value.country_code.label,
-      customer_name: `${value.first_name} ${value.last_name}`,
-      address: value.address,
-      city: value.city,
-      postal_code: value.postal_code,
-      phone: `${value.phone}`,
-    };
+  const getStatusOrder = async () => {
+    try {
+      const url = `${config.baseURL}/pembayaran/${id}`;
+      const respons = await axios.get(url, {
+        auth: config.basic,
+      });
+      const { data } = respons;
+      if (data.length > 0) {
+        setStatusPayment(data[0]?.pembayaran_transaction_status);
+      } else {
+        setStatusPayment("Sedang menunggu pembayaran");
+      }
 
-    const respons = await axios.post(url, payload, {
-      auth: config.basic
-    });
+      console.log(data);
+    } catch (error) {
+      console.log(err);
+    }
   };
+
   return (
     <Container>
       <Box>
-        <Typography sx={style.title}>Informasi Pemesanan</Typography>
-        <Breadcrumbs
-          aria-label="breadcrumb"
-          separator={<NavigateNextIcon fontSize="small" />}
-        >
-          <span>Information</span>
-          <span>Shipping</span>
-          <span>Payment</span>
-        </Breadcrumbs>
+        <Typography sx={style.title}>Status Pembayaran</Typography>
+        <StatusOrder status={statusPayment} price={numberSuperator(total)} />
       </Box>
       <Box sx={style.wrapper} as="main">
-        <Formik
-          initialValues={initialValues}
-          validationSchema={Schema}
-          onSubmit={(values) => {
-            handleSubmitData(values);
-          }}
-          validator={() => ({})}
-        >
-          {({
-            errors,
-            touched,
-            values,
-            handleChange,
-            handleBlur,
-            isValid,
-            isSubmitting,
-            setFieldValue,
-            handleSubmit,
-          }) => (
-            <Box sx={style.formWrapper}>
-              <Form onSubmit={handleSubmit}>
-                <Typography sx={style.subTitle}>Contact information</Typography>
-                <Grid container spacing="15px">
-                  <Grid item xs={12}>
-                    <TextField
-                      type="text"
-                      name="email"
-                      placeholder="Input email"
-                      value={values.email}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      label="Email"
-                      variant="filled"
-                      fullWidth
-                      error={touched.email && Boolean(errors.email)}
-                      helperText={
-                        touched.email && errors.email && `${errors.email}`
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      type="number"
-                      name="phone"
-                      placeholder="Input phone"
-                      value={values.phone}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      label="Phone"
-                      variant="filled"
-                      fullWidth
-                      error={touched.phone && Boolean(errors.phone)}
-                      helperText={
-                        touched.phone && errors.phone && `${errors.phone}`
-                      }
-                    />
-                  </Grid>
-                </Grid>
-
-                <Typography sx={style.subTitle}>Shipping address</Typography>
-                <Grid container spacing="15px">
-                  <Grid item xs={12}>
-                    <Autocomplete
-                      disablePortal
-                      id="combo-box-demo"
-                      options={country}
-                      onChange={(e, value) => {
-                        const provState = allProv.filter(
-                          (val) => val.country_code == value.value
-                        );
-                        setProv(provState);
-                        setFieldValue("country_code", value);
-                      }}
-                      getOptionLabel={(option) => option.label}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          id="outlined-basic"
-                          label="Country/Region"
-                          variant="filled"
-                          name="country_code"
-                          fullWidth
-                          onBlur={handleBlur}
-                          error={
-                            touched.country_code && Boolean(errors.country_code)
-                          }
-                          helperText={
-                            touched.country_code &&
-                            errors.country_code &&
-                            `${errors.country_code}`
-                          }
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      id="outlined-basic"
-                      variant="filled"
-                      fullWidth
-                      type="text"
-                      name="first_name"
-                      placeholder="Input first name"
-                      value={values.first_name}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      label="First name"
-                      error={touched.first_name && Boolean(errors.first_name)}
-                      helperText={
-                        touched.first_name &&
-                        errors.first_name &&
-                        `${errors.first_name}`
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      id="outlined-basic"
-                      variant="filled"
-                      fullWidth
-                      type="text"
-                      name="last_name"
-                      placeholder="Input last mName"
-                      value={values.last_name}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      label="Last name"
-                      error={touched.last_name && Boolean(errors.last_name)}
-                      helperText={
-                        touched.last_name &&
-                        errors.last_name &&
-                        `${errors.last_name}`
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      id="outlined-basic"
-                      variant="filled"
-                      fullWidth
-                      type="text"
-                      name="city"
-                      placeholder="Input city"
-                      value={values.city}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      label="City"
-                      error={touched.city && Boolean(errors.city)}
-                      helperText={
-                        touched.city && errors.city && `${errors.city}`
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      id="outlined-basic"
-                      variant="filled"
-                      fullWidth
-                      type="text"
-                      name="postal_code"
-                      placeholder="Input last mName"
-                      value={values.postal_code}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      label="Postal Code"
-                      error={touched.postal_code && Boolean(errors.postal_code)}
-                      helperText={
-                        touched.postal_code &&
-                        errors.postal_code &&
-                        `${errors.postal_code}`
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      id="outlined-basic"
-                      variant="filled"
-                      fullWidth
-                      type="text"
-                      name="address"
-                      placeholder="Input address"
-                      value={values.address}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      label="Address"
-                      error={touched.address && Boolean(errors.address)}
-                      helperText={
-                        touched.address && errors.address && `${errors.address}`
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Box sx={{ display: "flex", justifyContent: "end", mt: 2 }}>
-                      <Button
-                        size="large"
-                        type="submit"
-                        loading
-                        disabled={!isValid}
-                        sx={{ width: "200px" }}
-                      >
-                        {isSubmitting ? (
-                          <CircularProgress color="inherit" size={25} />
-                        ) : (
-                          "Continue to Shipping"
-                        )}
-                      </Button>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </Form>
-            </Box>
-          )}
-        </Formik>
         <Box sx={style.pricing}>
           <Box sx={{ marginTop: "50px" }} />
           {order.map((val, i) => (
@@ -423,6 +181,214 @@ export default function Microsite() {
             </Typography>
           </Box>
         </Box>
+        <Formik
+          initialValues={userData}
+          onSubmit={(values) => {
+            // handleSubmitData(values);
+          }}
+          validator={() => ({})}
+          enableReinitialize
+        >
+          {({
+            errors,
+            touched,
+            values,
+            handleChange,
+            handleBlur,
+            isValid,
+            isSubmitting,
+            setFieldValue,
+            handleSubmit,
+          }) => (
+            <Box sx={style.formWrapper}>
+              <Form onSubmit={handleSubmit}>
+                <Typography sx={style.subTitle}>Contact information</Typography>
+                <Grid container spacing="15px">
+                  <Grid item xs={12}>
+                    <TextField
+                      disabled
+                      type="text"
+                      name="email"
+                      placeholder="Input email"
+                      value={values.email}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      label="Email"
+                      variant="filled"
+                      fullWidth
+                      error={touched.email && Boolean(errors.email)}
+                      helperText={
+                        touched.email && errors.email && `${errors.email}`
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      disabled
+                      type="number"
+                      name="phone"
+                      placeholder="Input phone"
+                      value={values.phone}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      label="Phone"
+                      variant="filled"
+                      fullWidth
+                      error={touched.phone && Boolean(errors.phone)}
+                      helperText={
+                        touched.phone && errors.phone && `${errors.phone}`
+                      }
+                    />
+                  </Grid>
+                </Grid>
+
+                <Typography sx={style.subTitle}>Shipping address</Typography>
+                <Grid container spacing="15px">
+                  <Grid item xs={12}>
+                    <TextField
+                      disabled
+                      type="text"
+                      name="country"
+                      placeholder="Input Country"
+                      value={values.country_code}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      label="Country"
+                      variant="filled"
+                      fullWidth
+                      error={
+                        touched.country_code && Boolean(errors.country_code)
+                      }
+                      helperText={
+                        touched.country_code &&
+                        errors.country_code &&
+                        `${errors.country_code}`
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      disabled
+                      id="outlined-basic"
+                      variant="filled"
+                      fullWidth
+                      type="text"
+                      name="first_name"
+                      placeholder="Input first name"
+                      value={values.first_name}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      label="First name"
+                      error={touched.first_name && Boolean(errors.first_name)}
+                      helperText={
+                        touched.first_name &&
+                        errors.first_name &&
+                        `${errors.first_name}`
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      disabled
+                      id="outlined-basic"
+                      variant="filled"
+                      fullWidth
+                      type="text"
+                      name="last_name"
+                      placeholder="Input last lame"
+                      value={values.last_name}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      label="Last name"
+                      error={touched.last_name && Boolean(errors.last_name)}
+                      helperText={
+                        touched.last_name &&
+                        errors.last_name &&
+                        `${errors.last_name}`
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      disabled
+                      id="outlined-basic"
+                      variant="filled"
+                      fullWidth
+                      type="text"
+                      name="city"
+                      placeholder="Input city"
+                      value={values.city}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      label="City"
+                      error={touched.city && Boolean(errors.city)}
+                      helperText={
+                        touched.city && errors.city && `${errors.city}`
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      disabled
+                      id="outlined-basic"
+                      variant="filled"
+                      fullWidth
+                      type="text"
+                      name="postal_code"
+                      placeholder="Input last mName"
+                      value={values.postal_code}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      label="Postal Code"
+                      error={touched.postal_code && Boolean(errors.postal_code)}
+                      helperText={
+                        touched.postal_code &&
+                        errors.postal_code &&
+                        `${errors.postal_code}`
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      disabled
+                      id="outlined-basic"
+                      variant="filled"
+                      fullWidth
+                      type="text"
+                      name="address"
+                      placeholder="Input address"
+                      value={values.address}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      label="Address"
+                      error={touched.address && Boolean(errors.address)}
+                      helperText={
+                        touched.address && errors.address && `${errors.address}`
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Box sx={{ display: "flex", justifyContent: "end", mt: 2 }}>
+                      <Button
+                        size="large"
+                        type="submit"
+                        loading
+                        disabled={!isValid}
+                        sx={{ width: "200px" }}
+                      >
+                        {isSubmitting ? (
+                          <CircularProgress color="inherit" size={25} />
+                        ) : (
+                          "Continue to Shipping"
+                        )}
+                      </Button>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Form>
+            </Box>
+          )}
+        </Formik>
       </Box>
     </Container>
   );
@@ -438,40 +404,24 @@ const initialValues = {
   country_code: "",
 };
 
-const Schema = yup.object().shape({
-  email: yup
-    .string()
-    .email("Invalid email")
-    .required("Please enter your email"),
-  phone: yup.number().required("Please enter your phone"),
-  first_name: yup.string().required("Please enter your first name"),
-  last_name: yup.string().required("Please enter your last name"),
-  city: yup.string().required("Please enter your provincy"),
-  address: yup.string().required("Please enter your address"),
-  postal_code: yup.string().required("Please enter your postal code"),
-  country_code: yup.object().required("Please enter your Country"),
-});
-
 const style = {
   TextField: {},
   wrapper: {
-    display: "flex",
     width: "100%",
-    paddingY: "20px",
+    paddingBottom: "20px",
     gap: "20px",
     justifyContent: "space-between",
     flexDirection: { xs: "column-reverse", md: "row" },
   },
   formWrapper: {
-    width: { xs: "100%", md: "65%" },
-    maxWidth: { xs: "unset", md: "650px" },
+    width: "100%",
   },
   pricing: {
-    width: { xs: "100%", md: "35%" },
+    width: "100%",
   },
   title: {
     fontSize: "25px",
-    mt: "20px",
+    textAlign: "center",
   },
   subTitle: {
     fontSize: "18px",
