@@ -1,3 +1,5 @@
-export default function numberWithCommas(x) {
-  return x.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ".");
+export default function formatPrice(value) {
+  let val = Math.ceil(value).toFixed(0).replace(".", ",");
+  // let val = (value/1).toFixed(2).replace('.', ',')
+  return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }

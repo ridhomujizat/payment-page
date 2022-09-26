@@ -1,14 +1,21 @@
 import React from "react";
 import { Box } from "@mui/material";
 import Sidebar from "../../components/sidebar";
-
-export default function Dashboard({ children }) {
+import { Helmet } from "react-helmet";
+export default function Dashboard({ children, title }) {
   return (
-    <Box sx={style.wrapper}>
-      <Sidebar />
-      <Box sx={style.whitespace} />
-      <Box sx={style.content}>{children}</Box>
-    </Box>
+    <>
+      <Helmet>
+        <meta charSet="utf-8" />
+        <title>{title} | {import.meta.env.VITE_APP_NAME}</title>
+        {/* <link rel="canonical" href="http://mysite.com/example" /> */}
+      </Helmet>
+      <Box sx={style.wrapper}>
+        <Sidebar />
+        <Box sx={style.whitespace} />
+        <Box sx={style.content}>{children}</Box>
+      </Box>
+    </>
   );
 }
 
@@ -23,6 +30,6 @@ const style = {
   },
   content: {
     flex: 1,
-    p: "20px"
+    p: "20px",
   },
 };

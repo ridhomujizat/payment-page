@@ -16,12 +16,12 @@ import { Formik, Form } from "formik";
 import * as yup from "yup";
 import styled from "@emotion/styled";
 import axios from "axios";
-import config from "../../config";
+import config from "@/config";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import HelpIcon from "@mui/icons-material/Help";
 import SellIcon from "@mui/icons-material/Sell";
 
-import numberSuperator from "../../utils/numbersperator";
+import numberSuperator from "@/utils/numbersperator";
 
 export default function Microsite() {
   const { id } = useParams();
@@ -84,7 +84,7 @@ export default function Microsite() {
       const url = `${config.baseURL}/midtrans/create`;
       const payload = {
         transaction_details: {
-          order_id: "a222121",
+          order_id: id,
           gross_amount: total,
         },
         credit_card: {
@@ -112,9 +112,9 @@ export default function Microsite() {
             country_code: value.country_code.id,
           },
         },
-        // callbacks: {
-        //   finish: "https://",
-        // },
+        callbacks: {
+          finish: `${window.location.origin}/status-payment/${id}`,
+        },
       };
 
       const respons = await axios.post(url, payload, {
@@ -146,43 +146,43 @@ export default function Microsite() {
     };
 
     const respons = await axios.post(url, payload, {
-      auth: config.basic
+      auth: config.basic,
     });
   };
   return (
-    <Container>
-      <Box>
-        <Typography sx={style.title}>Informasi Pemesanan</Typography>
-        <Breadcrumbs
-          aria-label="breadcrumb"
-          separator={<NavigateNextIcon fontSize="small" />}
-        >
-          <span>Information</span>
-          <span>Shipping</span>
-          <span>Payment</span>
-        </Breadcrumbs>
-      </Box>
-      <Box sx={style.wrapper} as="main">
-        <Formik
-          initialValues={initialValues}
-          validationSchema={Schema}
-          onSubmit={(values) => {
-            handleSubmitData(values);
-          }}
-          validator={() => ({})}
-        >
-          {({
-            errors,
-            touched,
-            values,
-            handleChange,
-            handleBlur,
-            isValid,
-            isSubmitting,
-            setFieldValue,
-            handleSubmit,
-          }) => (
-            <Box sx={style.formWrapper}>
+    <Box sx={style.wrapper} as="main">
+      <Box sx={style.formWrapper}>
+        <Box sx={style.from}>
+          <Box sx={style.hideInMobile}>
+            <Typography sx={style.title}>Informasi Pemesanan</Typography>
+            <Breadcrumbs
+              aria-label="breadcrumb"
+              separator={<NavigateNextIcon fontSize="small" />}
+            >
+              <span>Information</span>
+              {/* <span>Shipping</span> */}
+              <span>Payment</span>
+            </Breadcrumbs>
+          </Box>
+          <Formik
+            initialValues={initialValues}
+            validationSchema={Schema}
+            onSubmit={(values) => {
+              handleSubmitData(values);
+            }}
+            validator={() => ({})}
+          >
+            {({
+              errors,
+              touched,
+              values,
+              handleChange,
+              handleBlur,
+              isValid,
+              isSubmitting,
+              setFieldValue,
+              handleSubmit,
+            }) => (
               <Form onSubmit={handleSubmit}>
                 <Typography sx={style.subTitle}>Contact information</Typography>
                 <Grid container spacing="15px">
@@ -366,18 +366,31 @@ export default function Microsite() {
                         {isSubmitting ? (
                           <CircularProgress color="inherit" size={25} />
                         ) : (
-                          "Continue to Shipping"
+                          "Continue to Payment"
                         )}
                       </Button>
                     </Box>
                   </Grid>
                 </Grid>
               </Form>
-            </Box>
-          )}
-        </Formik>
+            )}
+          </Formik>
+        </Box>
+      </Box>
+
+      <Box sx={style.pricingWrapper}>
+        <Box sx={style.hideInDesktop}>
+          <Typography sx={style.title}>Informasi Pemesanan</Typography>
+          <Breadcrumbs
+            aria-label="breadcrumb"
+            separator={<NavigateNextIcon fontSize="small" />}
+          >
+            <span>Information</span>
+            {/* <span>Shipping</span> */}
+            <span>Payment</span>
+          </Breadcrumbs>
+        </Box>
         <Box sx={style.pricing}>
-          <Box sx={{ marginTop: "50px" }} />
           {order.map((val, i) => (
             <Box sx={style.itemProduct} key={i}>
               <Box sx={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -424,7 +437,7 @@ export default function Microsite() {
           </Box>
         </Box>
       </Box>
-    </Container>
+    </Box>
   );
 }
 
@@ -453,22 +466,30 @@ const Schema = yup.object().shape({
 });
 
 const style = {
-  TextField: {},
+  hideInMobile: { display: { xs: "none", md: "block" } },
+  hideInDesktop: { display: { xs: "block", md: "none" } },
   wrapper: {
+    minHeight: "100vh",
     display: "flex",
     width: "100%",
-    paddingY: "20px",
     gap: "20px",
-    justifyContent: "space-between",
+    justifyContent: "center",
     flexDirection: { xs: "column-reverse", md: "row" },
   },
   formWrapper: {
-    width: { xs: "100%", md: "65%" },
+    width: { xs: "unset", md: "57%" },
+    p: "30px",
+  },
+  from: {
     maxWidth: { xs: "unset", md: "650px" },
+    marginLeft: { xs: "unset", md: "auto" },
   },
-  pricing: {
-    width: { xs: "100%", md: "35%" },
+  pricingWrapper: {
+    bgcolor: { xs: "#fff", md: "#fafafa" },
+    width: { xs: "unset", md: "43%" },
+    p: "30px",
   },
+  pricing: { marginTop: "50px", maxWidth: { xs: "unset", md: "400px" } },
   title: {
     fontSize: "25px",
     mt: "20px",

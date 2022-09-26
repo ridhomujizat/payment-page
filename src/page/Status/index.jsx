@@ -11,18 +11,16 @@ import {
   Button,
   Badge,
 } from "@mui/material";
+import moment from "moment"
 import { useParams } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as yup from "yup";
-import styled from "@emotion/styled";
 import axios from "axios";
-import config from "../../config";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import HelpIcon from "@mui/icons-material/Help";
-import SellIcon from "@mui/icons-material/Sell";
+import config from "@/config";
+
 
 import StatusOrder from "./Status";
-import numberSuperator from "../../utils/numbersperator";
+import numberSuperator from "@/utils/numbersperator";
 
 export default function Status() {
   const { id } = useParams();
@@ -36,6 +34,7 @@ export default function Status() {
 
   const [userData, setUserData] = useState(initialValues);
   const [statusPayment, setStatusPayment] = useState("");
+  const [status, setStatus] = useState(null);
 
   useEffect(() => {
     getCountry();
@@ -116,7 +115,15 @@ export default function Status() {
       });
       const { data } = respons;
       if (data.length > 0) {
-        setStatusPayment(data[0]?.pembayaran_transaction_status);
+        setStatus(data[0]);
+        switch (data[0]?.pembayaran_transaction_status) {
+          case "settlement":
+            setStatusPayment("Pembayaran Berhasil");
+            break;
+          default:
+            setStatusPayment("Sedang menunggu pembayaran");
+            break;
+        }
       } else {
         setStatusPayment("Sedang menunggu pembayaran");
       }
@@ -130,8 +137,84 @@ export default function Status() {
   return (
     <Container>
       <Box>
-        <Typography sx={style.title}>Status Pembayaran</Typography>
+        {/* <Typography sx={style.title}>Status Pembayaran</Typography> */}
         <StatusOrder status={statusPayment} price={numberSuperator(total)} />
+        {status && statusPayment === "Pembayaran Berhasil" && (
+          <Box sx={{ paddingY: "20px", borderBottom: "1px solid #c4c4c4" }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "10px",
+              }}
+            >
+              <Box>
+                <Typography sx={{ fontSize: "16px", color: "#848587" }}>
+                  Metode Pembayaran
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    color: "#000",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {status.pembayaran_payment_type.replaceAll("_", " ")}
+                </Typography>
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "10px",
+              }}
+            >
+              <Box>
+                <Typography sx={{ fontSize: "16px", color: "#848587" }}>
+                  No. Order
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    color: "#000",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {id}
+                </Typography>
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginTop: "10px",
+              }}
+            >
+              <Box>
+                <Typography sx={{ fontSize: "16px", color: "#848587" }}>
+                  Waktu Pembayaran
+                </Typography>
+              </Box>
+              <Box>
+                <Typography
+                  sx={{
+                    fontSize: "16px",
+                    color: "#000",
+                    textTransform: "capitalize",
+                  }}
+                >
+                  {moment(status.pembayaran_transaction_time).format("HH MMM YYYY hh:mm")}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        )}
       </Box>
       <Box sx={style.wrapper} as="main">
         <Box sx={style.pricing}>
@@ -251,6 +334,7 @@ export default function Status() {
                       name="country"
                       placeholder="Input Country"
                       value={values.country_code}
+                      // defaultValue={}
                       onChange={handleChange}
                       onBlur={handleBlur}
                       label="Country"
@@ -366,23 +450,6 @@ export default function Status() {
                         touched.address && errors.address && `${errors.address}`
                       }
                     />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Box sx={{ display: "flex", justifyContent: "end", mt: 2 }}>
-                      <Button
-                        size="large"
-                        type="submit"
-                        loading
-                        disabled={!isValid}
-                        sx={{ width: "200px" }}
-                      >
-                        {isSubmitting ? (
-                          <CircularProgress color="inherit" size={25} />
-                        ) : (
-                          "Continue to Shipping"
-                        )}
-                      </Button>
-                    </Box>
                   </Grid>
                 </Grid>
               </Form>

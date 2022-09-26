@@ -6,9 +6,9 @@ export default function Status({ price, status }) {
   return (
     <>
       <Box sx={[style.statusBox]}>
-        <Typography sx={{ fontSize: "40px", fontWeight: "bold" }}>
+        {/* <Typography sx={{ fontSize: "40px", fontWeight: "bold" }}>
           <span style={{ fontSize: "20px" }}>Rp</span> {price}
-        </Typography>
+        </Typography> */}
       </Box>
       <Typography sx={{fontWeight: "bold"}}>
         Status Pembayaran: {" "}

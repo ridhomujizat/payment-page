@@ -4,12 +4,14 @@ import Theme from "./config/theme/index";
 import { ThemeProvider } from "@mui/material/styles";
 
 // Admin
-import Login from "./page/Auth/Login";
-import Order from "./page/admin/Order";
-import Payment from "./page/admin/Payment";
-import Shipping from "./page/admin/Shipping";
+import Login from "@/page/Auth/Login";
+import Order from "@/page/admin/Order";
+import Payment from "@/page/admin/Payment";
+import Shipping from "@/page/admin/Shipping";
 
-import PaymentHistory from "./page/admin/Report/Payment";
+import PaymentHistory from "@/page/admin/Report/Payment";
+
+import Home from "./page/Home";
 
 
 import Microsite from "./page/microsite";
@@ -45,7 +47,7 @@ export default function App() {
             <Login />
           </Route>
           <Route path="/" exact>
-            <h1>Home</h1>
+            <Home />
           </Route>
         </Switch>
       </Router>

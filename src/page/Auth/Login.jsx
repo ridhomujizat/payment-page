@@ -1,13 +1,14 @@
 
 import React from "react";
 import { Box, Typography, Container, TextField, Button } from "@mui/material";
-
+import { useHistory } from "react-router-dom";
 import { Formik, Form } from "formik";
 import * as yup from "yup";
 
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 
 export default function Login() {
+  const history = useHistory()
   const handleSubmit = (value) => {
     console.log(value);
   };
@@ -27,7 +28,7 @@ export default function Login() {
         <Box sx={style.fromWrappe}>
           <Formik
             initialValues={initialValues}
-            validationSchema={Schema}
+            // validationSchema={Schema}
             onSubmit={(values) => {
               handleSubmitData(values);
             }}
@@ -78,6 +79,9 @@ export default function Login() {
                   type="Submit"
                   sx={{ marginTop: "20px" }}
                   size="lg"
+                  onClick={() => {
+                    history.push('/order-list')
+                  }}
                 >
                   Login
                 </Button>

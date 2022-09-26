@@ -1,10 +1,12 @@
 import React from "react";
-import DashboardLayout from "../../../layout/Dashboard";
+import DashboardLayout from "@/layout/Dashboard/TitleDashboard";
 
 export default function Payment() {
   return (
-    <DashboardLayout>
-      <h1>Payment histor</h1>
+    <DashboardLayout
+      title="Report Payment"
+      breadcumbs={[{ title: "Report" }, { title: "Payment" }]}
+    >
     </DashboardLayout>
   );
 }
